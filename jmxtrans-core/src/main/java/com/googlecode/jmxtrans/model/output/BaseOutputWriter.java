@@ -24,10 +24,8 @@ package com.googlecode.jmxtrans.model.output;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.googlecode.jmxtrans.exceptions.LifecycleException;
 import com.googlecode.jmxtrans.model.OutputWriter;
 import com.googlecode.jmxtrans.model.OutputWriterFactory;
@@ -174,29 +172,4 @@ public abstract class BaseOutputWriter implements OutputWriter, OutputWriterFact
 		return this;
 	}
 
-	private static final class ResultValuesTransformer implements Function<Result, Result> {
-
-		private final ValueTransformer valueTransformer;
-
-		private ResultValuesTransformer(ValueTransformer valueTransformer) {
-			this.valueTransformer = valueTransformer;
-		}
-
-		@Nullable
-		@Override
-		public Result apply(@Nullable Result input) {
-			if (input == null) {
-				return null;
-			}
-			return new Result(
-					input.getEpoch(),
-					input.getAttributeName(),
-					input.getClassName(),
-					input.getObjDomain(),
-					input.getKeyAlias(),
-					input.getTypeName(),
-					Maps.transformValues(input.getValues(), valueTransformer)
-			);
-		}
-	}
 }
