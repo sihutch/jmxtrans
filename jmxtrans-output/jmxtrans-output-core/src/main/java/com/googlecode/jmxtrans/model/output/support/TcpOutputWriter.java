@@ -24,34 +24,25 @@ package com.googlecode.jmxtrans.model.output.support;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Closer;
 import com.googlecode.jmxtrans.exceptions.LifecycleException;
 import com.googlecode.jmxtrans.model.OutputWriter;
 import com.googlecode.jmxtrans.model.Query;
 import com.googlecode.jmxtrans.model.Result;
 import com.googlecode.jmxtrans.model.Server;
 import com.googlecode.jmxtrans.model.ValidationException;
-import lombok.Getter;
+import com.googlecode.jmxtrans.model.output.support.pool.SocketAllocator;
+import com.googlecode.jmxtrans.model.output.support.pool.SocketExpiration;
+import com.googlecode.jmxtrans.model.output.support.pool.SocketPoolable;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import stormpot.Allocator;
 import stormpot.BlazePool;
 import stormpot.Config;
-import stormpot.Expiration;
 import stormpot.Pool;
-import stormpot.Poolable;
-import stormpot.Slot;
-import stormpot.SlotInfo;
 import stormpot.Timeout;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -107,84 +98,6 @@ public class TcpOutputWriter<T extends WriterBasedOutputWriter> implements Outpu
 	@Override
 	public void validateSetup(Server server, Query query) throws ValidationException {
 
-	}
-
-	private static class SocketPoolable implements Poolable {
-		@Nonnull private final Slot slot;
-		@Nonnull @Getter private final Socket socket;
-		@Nonnull @Getter private final Writer writer;
-
-		public SocketPoolable(@Nonnull Slot slot, @Nonnull Socket socket, @Nonnull Writer writer) {
-			this.slot = slot;
-			this.socket = socket;
-			this.writer = writer;
-		}
-
-		@Override
-		public void release() {
-			slot.release(this);
-		}
-
-		public void invalidate() {
-			slot.expire(this);
-		}
-	}
-
-	private static class SocketAllocator implements Allocator<SocketPoolable> {
-
-		private final InetSocketAddress server;
-		private final int socketTimeoutMillis;
-		private final Charset charset;
-
-		private SocketAllocator(InetSocketAddress server, int socketTimeoutMillis, Charset charset) {
-			this.server = server;
-			this.socketTimeoutMillis = socketTimeoutMillis;
-			this.charset = charset;
-		}
-
-		@Override
-		public SocketPoolable allocate(Slot slot) throws Exception {
-			// create new InetSocketAddress to ensure name resolution is done again
-			SocketAddress serverAddress = new InetSocketAddress(server.getHostName(), server.getPort());
-			Socket socket = new Socket();
-			socket.setKeepAlive(false);
-			socket.connect(serverAddress, socketTimeoutMillis);
-
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), charset));
-
-			return new SocketPoolable(slot, socket, writer);
-		}
-
-		@Override
-		public void deallocate(SocketPoolable poolable) throws Exception {
-			Closer closer = Closer.create();
-			try {
-				closer.register(poolable.getSocket());
-				closer.register(poolable.getWriter());
-			} catch (Throwable t) {
-				closer.rethrow(t);
-			} finally {
-				closer.close();
-			}
-		}
-	}
-
-	private static class SocketExpiration implements Expiration<SocketPoolable> {
-
-		@Override
-		public boolean hasExpired(SlotInfo<? extends SocketPoolable> info) throws Exception {
-			Socket socket = info.getPoolable().getSocket();
-			try {
-				return socket == null
-						|| !socket.isConnected()
-						|| !socket.isBound()
-						|| socket.isClosed()
-						|| socket.isInputShutdown()
-						|| socket.isOutputShutdown();
-			} catch (Exception e) {
-				return true;
-			}
-		}
 	}
 
 	public static <T extends WriterBasedOutputWriter> Builder<T> builder(

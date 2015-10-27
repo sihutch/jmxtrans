@@ -22,6 +22,7 @@
  */
 package com.googlecode.jmxtrans.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 public final class ResultFixtures {
@@ -38,6 +39,10 @@ public final class ResultFixtures {
 				ImmutableMap.<String, Object>of("Verbose", true));
 	}
 
+	public static ImmutableList<Result> singleTrueResult() {
+		return ImmutableList.of(booleanTrueResult());
+	}
+
 	public static Result booleanFalseResult() {
 		return new Result(
 				0,
@@ -47,5 +52,15 @@ public final class ResultFixtures {
 				"VerboseMemory",
 				"type=Memory",
 				ImmutableMap.<String, Object>of("Verbose", false));
+	}
+
+	public static ImmutableList<Result> singleFalseResult() {
+		return ImmutableList.of(booleanFalseResult());
+	}
+
+	public static ImmutableList<Result> dummyResults() {
+		return ImmutableList.of(
+				booleanTrueResult(),
+				booleanFalseResult());
 	}
 }

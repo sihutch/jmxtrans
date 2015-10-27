@@ -32,13 +32,15 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static com.googlecode.jmxtrans.model.QueryFixtures.dummyQuery;
-import static com.googlecode.jmxtrans.model.ResultFixtures.booleanFalseResult;
+import static com.googlecode.jmxtrans.model.ResultFixtures.singleFalseResult;
+import static com.googlecode.jmxtrans.model.ResultFixtures.singleTrueResult;
 import static com.googlecode.jmxtrans.model.ServerFixtures.dummyServer;
 import static com.googlecode.jmxtrans.model.output.support.ResultTransformerOutputWriter.booleanToNumber;
+import static com.googlecode.jmxtrans.model.output.support.ResultTransformerOutputWriter.identity;
+import static java.lang.Boolean.FALSE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -52,15 +54,27 @@ public class ResultTransformerOutputWriterTest {
 	@Test
 	public void booleanValuesAreTransformed() throws Exception {
 		ResultTransformerOutputWriter<OutputWriter> resultTransformerOutputWriter = booleanToNumber(outputWriter);
-		resultTransformerOutputWriter.doWrite(dummyServer(), dummyQuery(), ImmutableList.of(booleanFalseResult()));
+		resultTransformerOutputWriter.doWrite(dummyServer(), dummyQuery(), singleTrueResult());
 
 		verify(outputWriter)
 				.doWrite(any(Server.class), any(Query.class), resultsCaptor.capture());
 		assertThat(resultsCaptor.getValue()).hasSize(1);
 
 		Result transformedResult = resultsCaptor.getValue().get(0);
-		assertThat(transformedResult.getValues()).containsEntry("Verbose", 0);
+		assertThat(transformedResult.getValues()).containsEntry("Verbose", 1);
 	}
 
+	@Test
+	public void identityTransformerDoesNotTransformValues() throws Exception {
+		ResultTransformerOutputWriter<OutputWriter> resultTransformerOutputWriter = identity(outputWriter);
+		resultTransformerOutputWriter.doWrite(dummyServer(), dummyQuery(), singleFalseResult());
+
+		verify(outputWriter)
+				.doWrite(any(Server.class), any(Query.class), resultsCaptor.capture());
+		assertThat(resultsCaptor.getValue()).hasSize(1);
+
+		Result transformedResult = resultsCaptor.getValue().get(0);
+		assertThat(transformedResult.getValues()).containsEntry("Verbose", FALSE);
+	}
 
 }
