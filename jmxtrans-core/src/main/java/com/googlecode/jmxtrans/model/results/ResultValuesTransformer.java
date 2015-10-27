@@ -20,44 +20,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.googlecode.jmxtrans.model.output;
+package com.googlecode.jmxtrans.model.results;
 
-import com.google.common.collect.ImmutableList;
-import com.googlecode.jmxtrans.exceptions.LifecycleException;
-import com.googlecode.jmxtrans.model.OutputWriter;
-import com.googlecode.jmxtrans.model.Query;
+import com.google.common.base.Function;
+import com.google.common.collect.Maps;
 import com.googlecode.jmxtrans.model.Result;
-import com.googlecode.jmxtrans.model.Server;
-import com.googlecode.jmxtrans.model.ValidationException;
+import com.googlecode.jmxtrans.model.results.ValueTransformer;
 
-import java.util.Map;
+import javax.annotation.Nullable;
 
-import static java.util.Collections.emptyMap;
+public class ResultValuesTransformer implements Function<Result, Result> {
 
-public class BooleanAsNumberOutputWriter implements OutputWriter {
-	@Override
-	public void start() throws LifecycleException {
+	private final ValueTransformer valueTransformer;
+
+	public ResultValuesTransformer(ValueTransformer valueTransformer) {
+		this.valueTransformer = valueTransformer;
 	}
 
+	@Nullable
 	@Override
-	public void stop() throws LifecycleException {
+	public Result apply(@Nullable Result input) {
+		if (input == null) {
+			return null;
+		}
+		return new Result(
+				input.getEpoch(),
+				input.getAttributeName(),
+				input.getClassName(),
+				input.getObjDomain(),
+				input.getKeyAlias(),
+				input.getTypeName(),
+				Maps.transformValues(input.getValues(), valueTransformer)
+		);
 	}
 
-	@Override
-	public void doWrite(Server server, Query query, ImmutableList<Result> results) throws Exception {
-
-	}
-
-	@Override
-	public Map<String, Object> getSettings() {
-		return emptyMap();
-	}
-
-	@Override
-	public void setSettings(Map<String, Object> settings) {
-	}
-
-	@Override
-	public void validateSetup(Server server, Query query) throws ValidationException {
-	}
 }

@@ -31,6 +31,7 @@ import com.googlecode.jmxtrans.model.Query;
 import com.googlecode.jmxtrans.model.Result;
 import com.googlecode.jmxtrans.model.Server;
 import com.googlecode.jmxtrans.model.naming.KeyUtils;
+import com.googlecode.jmxtrans.model.output.support.ResultTransformerOutputWriter;
 import com.googlecode.jmxtrans.model.output.support.TcpOutputWriter;
 import com.googlecode.jmxtrans.model.output.support.WriterBasedOutputWriter;
 import com.googlecode.jmxtrans.util.OnlyOnceLogger;
@@ -85,9 +86,12 @@ public class GraphiteWriter2 implements OutputWriterFactory {
 
 	@Override
 	public OutputWriter create() {
-		return TcpOutputWriter.builder(graphiteServer, new W(typeNames, rootPrefix))
-				.setCharset(UTF_8)
-				.build();
+		return ResultTransformerOutputWriter.booleanToNumber(
+				booleanAsNumber,
+				TcpOutputWriter.builder(graphiteServer, new W(typeNames, rootPrefix))
+						.setCharset(UTF_8)
+						.build()
+		);
 	}
 
 	@ThreadSafe

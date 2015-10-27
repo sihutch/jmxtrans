@@ -34,4 +34,8 @@ public final class ServerFixtures {
 					.build())
 				.build();
 	}
+
+	public static Server dummyServer() {
+		return createServerWithOneQuery("host.example.net", "4321", "myQuery");
+	}
 }

@@ -35,6 +35,7 @@ import com.googlecode.jmxtrans.model.Server;
 import com.googlecode.jmxtrans.model.naming.typename.TypeNameValuesStringBuilder;
 import com.googlecode.jmxtrans.model.results.BooleanAsNumberValueTransformer;
 import com.googlecode.jmxtrans.model.results.IdentityValueTransformer;
+import com.googlecode.jmxtrans.model.results.ResultValuesTransformer;
 import com.googlecode.jmxtrans.model.results.ValueTransformer;
 import lombok.Getter;
 
@@ -144,17 +145,11 @@ public abstract class BaseOutputWriter implements OutputWriter, OutputWriterFact
 		return TypeNameValuesStringBuilder.getDefaultBuilder().build(this.getTypeNames(), typeNameStr);
 	}
 
-	/**
-	 * A do nothing method.
-	 */
 	@Override
 	public void start() throws LifecycleException {
 		// Do nothing.
 	}
 
-	/**
-	 * A do nothing method.
-	 */
 	@Override
 	public void stop() throws LifecycleException {
 		// Do nothing.

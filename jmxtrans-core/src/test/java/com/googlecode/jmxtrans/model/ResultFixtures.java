@@ -20,44 +20,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.googlecode.jmxtrans.model.output;
+package com.googlecode.jmxtrans.model;
 
-import com.google.common.collect.ImmutableList;
-import com.googlecode.jmxtrans.exceptions.LifecycleException;
-import com.googlecode.jmxtrans.model.OutputWriter;
-import com.googlecode.jmxtrans.model.Query;
-import com.googlecode.jmxtrans.model.Result;
-import com.googlecode.jmxtrans.model.Server;
-import com.googlecode.jmxtrans.model.ValidationException;
+import com.google.common.collect.ImmutableMap;
 
-import java.util.Map;
+public final class ResultFixtures {
+	private ResultFixtures() {}
 
-import static java.util.Collections.emptyMap;
-
-public class BooleanAsNumberOutputWriter implements OutputWriter {
-	@Override
-	public void start() throws LifecycleException {
+	public static Result booleanTrueResult() {
+		return new Result(
+				0,
+				"Verbose",
+				"sun.management.MemoryImpl",
+				"ObjectDomainName",
+				"VerboseMemory",
+				"type=Memory",
+				ImmutableMap.<String, Object>of("Verbose", true));
 	}
 
-	@Override
-	public void stop() throws LifecycleException {
-	}
-
-	@Override
-	public void doWrite(Server server, Query query, ImmutableList<Result> results) throws Exception {
-
-	}
-
-	@Override
-	public Map<String, Object> getSettings() {
-		return emptyMap();
-	}
-
-	@Override
-	public void setSettings(Map<String, Object> settings) {
-	}
-
-	@Override
-	public void validateSetup(Server server, Query query) throws ValidationException {
+	public static Result booleanFalseResult() {
+		return new Result(
+				0,
+				"Verbose",
+				"sun.management.MemoryImpl",
+				"ObjectDomainName",
+				"VerboseMemory",
+				"type=Memory",
+				ImmutableMap.<String, Object>of("Verbose", false));
 	}
 }

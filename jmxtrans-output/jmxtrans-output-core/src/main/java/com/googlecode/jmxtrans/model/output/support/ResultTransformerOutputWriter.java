@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.googlecode.jmxtrans.model.output;
+package com.googlecode.jmxtrans.model.output.support;
 
 import com.google.common.collect.ImmutableList;
 import com.googlecode.jmxtrans.exceptions.LifecycleException;
@@ -29,12 +29,26 @@ import com.googlecode.jmxtrans.model.Query;
 import com.googlecode.jmxtrans.model.Result;
 import com.googlecode.jmxtrans.model.Server;
 import com.googlecode.jmxtrans.model.ValidationException;
+import com.googlecode.jmxtrans.model.results.BooleanAsNumberValueTransformer;
+import com.googlecode.jmxtrans.model.results.IdentityValueTransformer;
+import com.googlecode.jmxtrans.model.results.ResultValuesTransformer;
 
+import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
+import static com.google.common.collect.FluentIterable.from;
 
-public class BooleanAsNumberOutputWriter implements OutputWriter {
+public class ResultTransformerOutputWriter<T extends OutputWriter> implements OutputWriter {
+
+	@Nonnull private final ResultValuesTransformer resultValuesTransformer;
+	@Nonnull private final T target;
+
+	public ResultTransformerOutputWriter(@Nonnull ResultValuesTransformer resultValuesTransformer, @Nonnull T target) {
+		this.resultValuesTransformer = resultValuesTransformer;
+		this.target = target;
+	}
+
 	@Override
 	public void start() throws LifecycleException {
 	}
@@ -45,12 +59,15 @@ public class BooleanAsNumberOutputWriter implements OutputWriter {
 
 	@Override
 	public void doWrite(Server server, Query query, ImmutableList<Result> results) throws Exception {
-
+		target.doWrite(
+				server,
+				query,
+				from(results).transform(resultValuesTransformer).toList());
 	}
 
 	@Override
 	public Map<String, Object> getSettings() {
-		return emptyMap();
+		return Collections.emptyMap();
 	}
 
 	@Override
@@ -60,4 +77,19 @@ public class BooleanAsNumberOutputWriter implements OutputWriter {
 	@Override
 	public void validateSetup(Server server, Query query) throws ValidationException {
 	}
+
+	public static <T extends OutputWriter> ResultTransformerOutputWriter<T> booleanToNumber(boolean booleanToNumber, T target) {
+		if (booleanToNumber) return booleanToNumber(target);
+		return identity(target);
+	}
+
+	public static <T extends OutputWriter> ResultTransformerOutputWriter<T> booleanToNumber(T target) {
+		return new ResultTransformerOutputWriter<T>(new ResultValuesTransformer(new BooleanAsNumberValueTransformer(1, 0)), target);
+	}
+
+	public static <T extends OutputWriter> ResultTransformerOutputWriter<T> identity(T target) {
+		return new ResultTransformerOutputWriter<T>(new ResultValuesTransformer(new IdentityValueTransformer()), target);
+	}
+
+
 }
